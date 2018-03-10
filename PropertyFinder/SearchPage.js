@@ -17,12 +17,61 @@ import {
   Image,
 } from 'react-native';
 
+
+function urlForQueryAndPage(key, value, pageNumber) {
+  const data = {
+      country: 'uk',
+      pretty: '1',
+      encoding: 'json',
+      listing_type: 'buy',
+      action: 'search_listings',
+      page: pageNumber,
+  };
+  data[key] = value;
+
+  const querystring = Object.keys(data)
+    .map(key => key + '=' + encodeURIComponent(data[key]))
+    .join('&');
+
+  return 'https://api.nestoria.co.uk/api?' + querystring;
+}
 export default class SearchPage extends Component<{}> {
   static navigationOptions = {
     title: 'Property Finder',
   };
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      searchString: 'london',
+      isLoading: false,
+    };
+  }
+
+
+
+  _onSearchTextChanged = (event) => {
+    console.log('_onSearchTextChanged');
+    this.setState({ searchString: event.nativeEvent.text });
+    console.log('Current: '+this.state.searchString+', Next: '+event.nativeEvent.text);
+  };
+
+_executeQuery = (query) => {
+  console.log(query);
+  this.setState({ isLoading: true });
+};
+
+_onSearchPressed = () => {
+  const query = urlForQueryAndPage('place_name', this.state.searchString, 1);
+  this._executeQuery(query);
+};
+
   render() {
+   console.log('SearchPage.render');
+
+   const spinner = this.state.isLoading ?
+     <ActivityIndicator size='large'/> : null;
+
     return (
       <View style={styles.container}>
         <Text style={styles.description}>
@@ -35,15 +84,20 @@ export default class SearchPage extends Component<{}> {
                 <TextInput
                   underlineColorAndroid={'transparent'}
                   style={styles.searchInput}
+                  onChange={this._onSearchTextChanged}
+                  value={this.state.searchString}
                   placeholder='Search via name or postcode'/>
+
+
                 <Button
-                  onPress={() => {}}
+                  onPress={this._onSearchPressed}
                   color='#48BBEC'
                   title='Go'
                 />
-              </View>
+                </View>
+<Image source={require('./Resources/house.png')} style={styles.image}/>
+{spinner}
       </View>
-
 
     );
   }
@@ -76,5 +130,9 @@ const styles = StyleSheet.create({
     padding: 30,
     marginTop: 65,
     alignItems: 'center'
+  },
+  image: {
+    width: 217,
+    height: 138,
   },
 });
